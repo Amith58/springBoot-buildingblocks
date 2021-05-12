@@ -27,6 +27,10 @@ public class UserDetails {
 		this.lastName = lastName;
 		this.city = city;
 	}
+	@Override
+	public String toString() {
+		return "UserDetails [firstName=" + firstName + ", lastName=" + lastName + ", city=" + city + "]";
+	}
 	
 
 }
