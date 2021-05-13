@@ -3,9 +3,13 @@ package com.stacksimplify.restservices.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.stacksimplify.restservices.entities.User;
+import com.stacksimplify.restservices.exceptions.UserExistsException;
+import com.stacksimplify.restservices.exceptions.UserNotFoundException;
 import com.stacksimplify.restservices.repositories.UserRepository;
 import com.sun.el.stream.Optional;
 
@@ -17,29 +21,47 @@ public class UserService {
 	public List<User> getAllUsers(){
 		return userRepository.findAll();
 	}
-public User createUser(User user)
+public User createUser(User user) throws UserExistsException
 {
+	User existingUser=userRepository.findByUserName(user.getUserName());
+	if(existingUser!=null)
+	{
+		throw new UserExistsException("User already exist in repo");
+	}
 	return userRepository.save(user);
 }
-public java.util.Optional<User> getUserById(Long id)
+public java.util.Optional<User> getUserById(Long id) throws UserNotFoundException
 {
 	java.util.Optional<User> user=userRepository.findById(id);
+	if(!user.isPresent())
+	{
+		throw new UserNotFoundException("User not found in user repo" );
+	}
 	return user;
 }
-public User updateUserById(Long id,User user)
+public User updateUserById(Long id,User user) throws UserNotFoundException
 {
+	java.util.Optional<User> optionalUser=userRepository.findById(id);
+	if(!optionalUser.isPresent())
+	{
+		throw new UserNotFoundException("User not found in user repo, provide correct user id" );
+	}
 	user.setId(id);
 	return userRepository.save(user);
 }
 public void deleteUserById(Long id)
 {
-	if(userRepository.findById(id).isPresent())
+	java.util.Optional<User> optionalUser=userRepository.findById(id);
+	if(!optionalUser.isPresent())
 	{
-		userRepository.deleteById(id);
+		throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"User not found in user repo, provide correct user id" );
 	}
+
+		userRepository.deleteById(id);
 }
 public User getUserByUserName(String userName)
 {
 	return userRepository.findByUserName(userName);
 }
+
 }
